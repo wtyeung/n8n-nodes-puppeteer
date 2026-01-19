@@ -520,24 +520,52 @@ export class Puppeteer implements INodeType {
 			headless = 'shell';
 		}
 
-		let browser: Browser;
-		try {
-			if (browserWSEndpoint) {
-				browser = await puppeteer.connect({
-					browserWSEndpoint,
-					protocolTimeout,
-				});
-			} else {
-				browser = await puppeteer.launch({
-					headless,
-					args,
-					executablePath,
-					protocolTimeout,
-				});
-			}
-		} catch (error) {
-			throw new Error(`Failed to launch/connect to browser: ${(error as Error).message}`);
+	let browser: Browser;
+	try {
+		// Debug logging
+		const debugInfo = {
+			hasBrowserWSEndpoint: !!browserWSEndpoint,
+			browserWSEndpointValue: browserWSEndpoint || '(empty)',
+			hasExecutablePath: !!executablePath,
+			executablePathValue: executablePath || '(default)',
+			stealth,
+			humanTyping,
+		};
+		console.log('Puppeteer node - Browser launch configuration:', JSON.stringify(debugInfo, null, 2));
+
+		if (browserWSEndpoint && browserWSEndpoint.trim() !== '') {
+			// Remote browser mode
+			console.log(`Puppeteer node: Connecting to remote browser at ${browserWSEndpoint}`);
+			browser = await puppeteer.connect({
+				browserWSEndpoint,
+				protocolTimeout,
+			});
+			console.log('Puppeteer node: Successfully connected to remote browser');
+		} else {
+			// Local browser mode
+			console.log('Puppeteer node: Launching local browser');
+			browser = await puppeteer.launch({
+				headless,
+				args,
+				executablePath,
+				protocolTimeout,
+			});
+			console.log('Puppeteer node: Successfully launched local browser');
 		}
+	} catch (error) {
+		const errorMsg = (error as Error).message;
+		if (browserWSEndpoint && browserWSEndpoint.trim() !== '') {
+			throw new Error(
+				`Failed to connect to remote browser at '${browserWSEndpoint}': ${errorMsg}. ` +
+				`Verify the WebSocket endpoint is accessible and the browser is running.`
+			);
+		} else {
+			throw new Error(
+				`Failed to launch local browser: ${errorMsg}. ` +
+				`Check executablePath ('${executablePath || 'auto-detect'}') or ensure Chromium is installed.`
+			);
+		}
+	}
 
 		const processItem = async (
 			item: INodeExecutionData,
