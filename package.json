@@ -1,6 +1,6 @@
 {
   "name": "@laheud/n8n-nodes-puppeteer",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "n8n node for browser automation using Puppeteer (fork with improved browserWSEndpoint handling)",
   "license": "MIT",
   "homepage": "https://github.com/laHeud/n8n-nodes-puppeteer",

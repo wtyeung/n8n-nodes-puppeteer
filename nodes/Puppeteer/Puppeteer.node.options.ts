@@ -42,13 +42,13 @@ function isRunningInContainer(): boolean {
  * Options to be displayed
  */
 export const nodeDescription: INodeTypeDescription = {
-	displayName: 'Puppeteer',
-	name: 'puppeteer',
+	displayName: 'Puppeteer Enhanced',
+	name: 'puppeteerEnhanced',
 	group: ['puppeteer'],
 	version: 1,
-	description: 'Automate browser interactions using Puppeteer',
+	description: 'Automate browser interactions using Puppeteer (Enhanced fork with improved browserWSEndpoint)',
 	defaults: {
-		name: 'Puppeteer',
+		name: 'Puppeteer Enhanced',
 		color: '#125580',
 	},
 	icon: 'file:puppeteer.svg',
