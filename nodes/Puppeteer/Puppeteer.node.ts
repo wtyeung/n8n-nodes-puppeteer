@@ -466,7 +466,20 @@ export class Puppeteer implements INodeType {
 		let headless: 'shell' | boolean = options.headless !== false;
 		const headlessShell = options.shell === true;
 		const executablePath = options.executablePath as string;
-		const browserWSEndpoint = (options.browserWSEndpoint as string) || process.env.BROWSER_WS_ENDPOINT || '';
+		// Construct WebSocket endpoint from UI field or env vars
+		let browserWSEndpoint = (options.browserWSEndpoint as string) || '';
+		if (!browserWSEndpoint && process.env.BROWSER_WS_ENDPOINT) {
+			// Build from separate env vars: base URL + token
+			const baseEndpoint = process.env.BROWSER_WS_ENDPOINT;
+			const token = process.env.BROWSER_WS_TOKEN;
+			if (token) {
+				// Append token as query parameter
+				const separator = baseEndpoint.includes('?') ? '&' : '?';
+				browserWSEndpoint = `${baseEndpoint}${separator}token=${token}`;
+			} else {
+				browserWSEndpoint = baseEndpoint;
+			}
+		}
 		const stealth = options.stealth === true;
 		const humanTyping = options.humanTyping === true;
 		const humanTypingOptions =  {
@@ -528,7 +541,7 @@ export class Puppeteer implements INodeType {
 		const debugInfo = {
 			hasBrowserWSEndpoint: !!browserWSEndpoint,
 			browserWSEndpointValue: maskToken(browserWSEndpoint),
-			browserWSEndpointSource: options.browserWSEndpoint ? 'UI field' : (process.env.BROWSER_WS_ENDPOINT ? 'env var' : 'none'),
+			browserWSEndpointSource: options.browserWSEndpoint ? 'UI field' : (process.env.BROWSER_WS_ENDPOINT ? 'env vars (BROWSER_WS_ENDPOINT + BROWSER_WS_TOKEN)' : 'none'),
 			hasExecutablePath: !!executablePath,
 			executablePathValue: executablePath || '(default)',
 			stealth,

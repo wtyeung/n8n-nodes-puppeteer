@@ -561,7 +561,7 @@ export const nodeDescription: INodeTypeDescription = {
 					type: 'string',
 					required: false,
 					default: '',
-					description: 'The WebSocket URL of the browser to connect to. When configured, puppeteer will skip the browser launch and connect to the browser instance. If empty, uses BROWSER_WS_ENDPOINT environment variable if set, otherwise launches local browser.',
+					description: 'The WebSocket URL of the browser to connect to. When configured, puppeteer will skip the browser launch and connect to the browser instance. If empty, uses BROWSER_WS_ENDPOINT (base URL) and BROWSER_WS_TOKEN (appended as ?token=) environment variables if set, otherwise launches local browser.',
 				},
 				{
 					displayName: 'Emulate Device',
