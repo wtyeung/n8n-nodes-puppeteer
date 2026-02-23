@@ -14,12 +14,14 @@
   },
   "main": "index.js",
   "scripts": {
-    "dev": "npm run watch",
     "build": "tsc && gulp",
-    "lint": "tslint -p tsconfig.json -c tslint.json",
-    "lintfix": "tslint --fix -p tsconfig.json -c tslint.json",
-    "nodelinter": "nodelinter",
-    "watch": "tsc --watch"
+    "build:watch": "tsc --watch",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "format": "prettier --write \"nodes/**/*.ts\"",
+    "format:check": "prettier --check \"nodes/**/*.ts\"",
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist"
@@ -43,9 +45,7 @@
     ]
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^8.18.1",
-    "eslint": "^9.17.0",
-    "eslint-plugin-n8n-nodes-base": "^1.16.3",
+    "@n8n/node-cli": "*",
     "gulp": "^5.0.0",
     "n8n-workflow": "*",
     "prettier": "^3.4.2",

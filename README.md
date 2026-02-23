@@ -51,6 +51,42 @@ npm install n8n-nodes-puppeteer
 
 Note: By default, when Puppeteer is installed, it downloads a compatible version of Chromium. While this works, it increases installation size and may not include necessary system dependencies. For production use, we recommend either using the Docker setup above or installing system Chrome/Chromium and setting the `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true` environment variable.
 
+## Development
+
+This project uses `@n8n/node-cli` for development, providing an integrated development environment with hot reload and proper tooling.
+
+### Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+The dev server will start n8n at http://localhost:5678 with your node automatically loaded. Changes to the code will trigger automatic rebuilds.
+
+### Available Scripts
+
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build TypeScript and run Gulp tasks
+- `npm run build:watch` - Watch mode for TypeScript compilation
+- `npm run lint` - Check code quality
+- `npm run lint:fix` - Auto-fix linting issues
+- `npm run format` - Format code with Prettier
+
+For detailed development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
+### Recent Improvements
+
+**v1.4.4**
+- ✅ **TypeScript**: Full type safety with zero `//@ts-ignore` comments
+- ✅ **Modern Dev Tools**: Using `@n8n/node-cli` for integrated development
+- ✅ **Updated Dependencies**: Puppeteer 24.x with latest security fixes
+- ✅ **Dependency Fixes**: Resolved lru-cache and glob deprecation warnings
+- ✅ **Better Documentation**: Comprehensive guides for development and deployment
+
 ## Browser Setup Options
 
 ### 1. Local Browser (Docker Setup - Recommended)
@@ -277,6 +313,28 @@ return [
 ### Get Screenshot
 
 ![](images/screenshot.png)
+
+## Credits
+
+This project is a fork of the original [n8n-nodes-puppeteer](https://github.com/drudge/n8n-nodes-puppeteer) by [Nicholas Penree](https://github.com/drudge).
+
+### Original Author
+- **Nicholas Penree** ([@drudge](https://github.com/drudge)) - Original creator and maintainer
+
+### This Fork
+- **laHeud** - Improved browserWSEndpoint handling and dependency management
+- **Tim Yeung** ([@wtyeung](https://github.com/wtyeung)) - TypeScript improvements, modern dev tooling, and documentation
+
+### Key Improvements in This Fork
+- Enhanced WebSocket endpoint connection handling
+- Updated to Puppeteer 24.x with latest features
+- Full TypeScript type safety (removed all `//@ts-ignore`)
+- Modern development workflow using `@n8n/node-cli`
+- Resolved dependency conflicts (lru-cache, glob)
+- Comprehensive development documentation
+- Better error handling and debugging
+
+Special thanks to the n8n community and all contributors who have helped improve this node!
 
 ## License
 

@@ -12,7 +12,6 @@ import { makeResolverFromLegacyOptions, NodeVM } from '@n8n/vm2';
 
 import puppeteer from 'puppeteer-extra';
 import pluginStealth from 'puppeteer-extra-plugin-stealth';
-//@ts-ignore
 import pluginHumanTyping from 'puppeteer-extra-plugin-human-typing'; 
 import {
 	type Browser,

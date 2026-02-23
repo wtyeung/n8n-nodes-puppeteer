@@ -1,0 +1,15 @@
+# n8n local development configuration
+# This file is used when running n8n locally for development
+
+# Custom nodes location
+N8N_CUSTOM_EXTENSIONS=./dist
+
+# Development settings
+N8N_LOG_LEVEL=debug
+N8N_LOG_OUTPUT=console
+
+# Disable version notifications
+N8N_VERSION_NOTIFICATIONS_ENABLED=false
+
+# Allow custom nodes
+N8N_COMMUNITY_PACKAGES_ENABLED=true
