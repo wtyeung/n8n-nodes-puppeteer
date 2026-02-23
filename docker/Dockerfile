@@ -20,11 +20,15 @@ RUN apk add --no-cache \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Install n8n-nodes-puppeteer in a permanent location
-RUN mkdir -p /opt/n8n-custom-nodes && \
-    cd /opt/n8n-custom-nodes && \
-    npm install n8n-nodes-puppeteer && \
-    chown -R node:node /opt/n8n-custom-nodes
+# Pre-install the package with full npm (bypasses n8n's --install-strategy=shallow)
+# Using || true so a failed install does NOT break the Docker build
+ENV N8N_CUSTOM_EXTENSIONS=/home/node/.n8n/custom
+RUN mkdir -p /home/node/.n8n/custom && \
+    cd /home/node/.n8n/custom && \
+    npm init -y && \
+    npm install --save @wtyeung/n8n-nodes-puppeteer || \
+    (echo "WARNING: Failed to install @wtyeung/n8n-nodes-puppeteer - n8n will start without it" && true) && \
+    chown -R node:node /home/node/.n8n/custom
 
 # Copy our custom entrypoint
 COPY docker-custom-entrypoint.sh /docker-custom-entrypoint.sh
