@@ -1,4 +1,4 @@
-import { type INodeTypeDescription, NodeConnectionType } from 'n8n-workflow';
+import { type INodeTypeDescription } from 'n8n-workflow';
 import { existsSync, readFileSync } from 'node:fs';
 
 function isRunningInContainer(): boolean {
@@ -44,7 +44,21 @@ function isRunningInContainer(): boolean {
 export const nodeDescription: INodeTypeDescription = {
 	displayName: 'Puppeteer Enhanced',
 	name: 'puppeteerEnhanced',
-	group: ['puppeteer'],
+	group: ['transform'],
+	subtitle: '={{$parameter["operation"]}}',
+	codex: {
+		categories: ['Development'],
+		subcategories: {
+			Development: ['Browser Automation'],
+		},
+		resources: {
+			primaryDocumentation: [
+				{
+					url: 'https://github.com/laHeud/n8n-nodes-puppeteer',
+				},
+			],
+		},
+	},
 	version: 1,
 	description: 'Automate browser interactions using Puppeteer (Enhanced fork with improved browserWSEndpoint)',
 	defaults: {
@@ -52,8 +66,8 @@ export const nodeDescription: INodeTypeDescription = {
 		color: '#125580',
 	},
 	icon: 'file:puppeteer.svg',
-	inputs: [NodeConnectionType.Main],
-	outputs: [NodeConnectionType.Main],
+	inputs: ['main'],
+	outputs: ['main'],
 	usableAsTool: true,
 	properties: [
 		{
