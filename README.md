@@ -12,7 +12,7 @@ For n8n version 0.187 and later, you can install this node through the Community
 
 1. Go to **Settings > Community Nodes**
 2. Select **Install**
-3. Enter `n8n-nodes-puppeteer` in **Enter npm package name**
+3. Enter `@wtyeung/n8n-nodes-puppeteer` in **Enter npm package name**
 4. Agree to the [risks](https://docs.n8n.io/integrations/community-nodes/risks/) of using community nodes
 5. Select **Install**
 
@@ -46,7 +46,7 @@ For a standard installation without Docker:
 cd /path/to/n8n
 
 # Install the package
-npm install n8n-nodes-puppeteer
+npm install @wtyeung/n8n-nodes-puppeteer
 ```
 
 Note: By default, when Puppeteer is installed, it downloads a compatible version of Chromium. While this works, it increases installation size and may not include necessary system dependencies. For production use, we recommend either using the Docker setup above or installing system Chrome/Chromium and setting the `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true` environment variable.
