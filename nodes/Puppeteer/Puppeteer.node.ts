@@ -466,7 +466,7 @@ export class Puppeteer implements INodeType {
 		let headless: 'shell' | boolean = options.headless !== false;
 		const headlessShell = options.shell === true;
 		const executablePath = options.executablePath as string;
-		const browserWSEndpoint = options.browserWSEndpoint as string;
+		const browserWSEndpoint = (options.browserWSEndpoint as string) || process.env.BROWSER_WS_ENDPOINT || '';
 		const stealth = options.stealth === true;
 		const humanTyping = options.humanTyping === true;
 		const humanTypingOptions =  {
@@ -519,12 +519,16 @@ export class Puppeteer implements INodeType {
 			headless = 'shell';
 		}
 
+	// Helper to mask tokens in URLs for security
+	const maskToken = (url: string) => url ? url.split('?')[0] + (url.includes('?') ? '?***' : '') : '(empty)';
+
 	let browser: Browser;
 	try {
 		// Debug logging
 		const debugInfo = {
 			hasBrowserWSEndpoint: !!browserWSEndpoint,
-			browserWSEndpointValue: browserWSEndpoint || '(empty)',
+			browserWSEndpointValue: maskToken(browserWSEndpoint),
+			browserWSEndpointSource: options.browserWSEndpoint ? 'UI field' : (process.env.BROWSER_WS_ENDPOINT ? 'env var' : 'none'),
 			hasExecutablePath: !!executablePath,
 			executablePathValue: executablePath || '(default)',
 			stealth,
@@ -534,7 +538,7 @@ export class Puppeteer implements INodeType {
 
 		if (browserWSEndpoint && browserWSEndpoint.trim() !== '') {
 			// Remote browser mode
-			console.log(`Puppeteer node: Connecting to remote browser at ${browserWSEndpoint}`);
+			console.log(`Puppeteer node: Connecting to remote browser at ${maskToken(browserWSEndpoint)}`);
 			browser = await puppeteer.connect({
 				browserWSEndpoint,
 				protocolTimeout,
@@ -555,7 +559,7 @@ export class Puppeteer implements INodeType {
 		const errorMsg = (error as Error).message;
 		if (browserWSEndpoint && browserWSEndpoint.trim() !== '') {
 			throw new Error(
-				`Failed to connect to remote browser at '${browserWSEndpoint}': ${errorMsg}. ` +
+				`Failed to connect to remote browser at '${maskToken(browserWSEndpoint)}': ${errorMsg}. ` +
 				`Verify the WebSocket endpoint is accessible and the browser is running.`
 			);
 		} else {

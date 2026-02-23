@@ -1,6 +1,6 @@
 {
   "name": "@wtyeung/n8n-nodes-puppeteer",
-  "version": "1.4.12",
+  "version": "1.4.13",
   "description": "n8n node for browser automation using Puppeteer (fork with TypeScript improvements and modern dev tooling)",
   "license": "MIT",
   "homepage": "https://github.com/laHeud/n8n-nodes-puppeteer",
