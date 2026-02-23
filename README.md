@@ -80,6 +80,12 @@ For detailed development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### Recent Improvements
 
+**v1.4.16**
+- ✅ **Installation Fix**: Resolved `yallist_1.Yallist is not a constructor` error when installing via n8n Community Nodes UI
+- ✅ **Installation Fix**: Resolved `ENOENT: no such file or directory, proxy-agent/dist/index.js` error caused by n8n's shallow install strategy
+- ✅ **Security**: WebSocket endpoint tokens are masked in all logs (`?***`)
+- ✅ **Env Var Support**: `BROWSER_WS_ENDPOINT` and `BROWSER_WS_TOKEN` for vault-based secret management
+
 **v1.4.4**
 - ✅ **TypeScript**: Full type safety with zero `//@ts-ignore` comments
 - ✅ **Modern Dev Tools**: Using `@n8n/node-cli` for integrated development
@@ -110,12 +116,58 @@ Options include:
 
 To use a remote browser, enable "Browser WebSocket Endpoint" in any Puppeteer node and enter your WebSocket URL (e.g., `ws://browserless:3000?token=6R0W53R135510`).
 
+## Docker Requirements for Community Node Installation
+
+When installing via n8n's **Community Nodes UI**, n8n uses a shallow install strategy that requires `proxy-agent` to be pre-installed globally in your n8n Docker image. Add it to your Dockerfile:
+
+```dockerfile
+FROM docker.n8n.io/n8nio/n8n:latest
+
+USER root
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_SKIP_DOWNLOAD=true
+
+RUN npm install -g proxy-agent
+
+USER node
+```
+
+Without this, you may see: `ENOENT: no such file or directory, open '.../proxy-agent/dist/index.js'`
+
+## Remote Browser Configuration
+
+### Using Environment Variables (Recommended for Production)
+
+Instead of entering the WebSocket endpoint in each workflow, set environment variables in your Docker image. The node will use them automatically when the UI field is left empty.
+
+| Variable | Description |
+|----------|-------------|
+| `BROWSER_WS_ENDPOINT` | Base WebSocket URL, e.g. `wss://browser.example.com:9222` |
+| `BROWSER_WS_TOKEN` | Secret token (from vault). Appended as `?token=<value>` |
+
+```dockerfile
+ENV BROWSER_WS_ENDPOINT=wss://browser.example.com:9222
+ENV BROWSER_WS_TOKEN=your-secret-token
+```
+
+**Priority order:** UI field → env vars → local browser launch
+
+Tokens are always masked as `?***` in logs for security.
+
 ## Troubleshooting
 
-If you see errors about missing shared libraries (like `libgobject-2.0.so.0` or `libnss3.so`), either:
+### `yallist_1.Yallist is not a constructor`
 
-1. Install the missing Chrome dependencies
-2. Switch to using a remote browser with the WebSocket endpoint option
+This error occurs when a dependency is specified as a GitHub source (e.g. `github:user/repo`). Fixed in v1.4.11 by switching `puppeteer-extra-plugin-human-typing` to the npm registry version.
+
+### `ENOENT: no such file or directory, proxy-agent/dist/index.js`
+
+n8n's shallow install strategy creates incomplete nested `node_modules`. Fix by adding `proxy-agent` to your Docker global install (see [Docker Requirements](#docker-requirements-for-community-node-installation) above).
+
+### Missing shared libraries (`libgobject-2.0.so.0`, `libnss3.so`)
+
+Either install the missing Chrome dependencies or switch to a remote browser using the WebSocket endpoint option.
 
 For additional help, see [Puppeteer's troubleshooting guide](https://pptr.dev/troubleshooting).
 
