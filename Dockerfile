@@ -2,30 +2,18 @@ FROM docker.n8n.io/n8nio/n8n
 
 USER root
 
-# Install Chrome dependencies and Chrome
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    glib \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    udev \
-    ttf-liberation \
-    font-noto-emoji
-
-# Tell Puppeteer to use installed Chrome instead of downloading it
+# Skip Chromium download - remote browser only
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    PUPPETEER_SKIP_DOWNLOAD=true \
+    N8N_CUSTOM_EXTENSIONS=/home/node/.n8n/custom
 
-# Install n8n-nodes-puppeteer in a permanent location
-COPY . /opt/n8n-custom-nodes/node_modules/n8n-nodes-puppeteer
-RUN cd /opt/n8n-custom-nodes/node_modules/n8n-nodes-puppeteer && \
-    npm install && \
-		npm run build && \
-    chown -R node:node /opt/n8n-custom-nodes
+# Pre-install the package with full npm (not n8n's shallow install)
+# This avoids the lru-cache constructor error caused by n8n's --install-strategy=shallow
+RUN mkdir -p /home/node/.n8n/custom && \
+    cd /home/node/.n8n/custom && \
+    npm init -y && \
+    npm install --save @wtyeung/n8n-nodes-puppeteer && \
+    chown -R node:node /home/node/.n8n/custom
 
 # Copy our custom entrypoint
 COPY docker/docker-custom-entrypoint.sh /docker-custom-entrypoint.sh

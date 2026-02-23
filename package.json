@@ -1,6 +1,6 @@
 {
   "name": "@wtyeung/n8n-nodes-puppeteer",
-  "version": "1.4.6",
+  "version": "1.4.9",
   "description": "n8n node for browser automation using Puppeteer (fork with TypeScript improvements and modern dev tooling)",
   "license": "MIT",
   "homepage": "https://github.com/laHeud/n8n-nodes-puppeteer",
@@ -56,16 +56,9 @@
   },
   "dependencies": {
     "@n8n/vm2": "^3.9.25",
-    "lru-cache": "^7.18.3",
-    "puppeteer": "~22.15.0",
+    "puppeteer": "^24.0.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-human-typing": "github:0x7357/puppeteer-extra-plugin-human-typing",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
-  },
-  "overrides": {
-    "lru-cache": "^7.18.3",
-    "rimraf": "^6.0.0",
-    "glob": "^13.0.0",
-    "inflight": "npm:@zkochan/inflight@^2.0.0"
   }
 }
