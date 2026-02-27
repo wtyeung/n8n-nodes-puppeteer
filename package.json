@@ -3,14 +3,14 @@
   "version": "1.5.0",
   "description": "n8n node for browser automation using Puppeteer (fork with TypeScript improvements and modern dev tooling)",
   "license": "MIT",
-  "homepage": "https://github.com/laHeud/n8n-nodes-puppeteer",
+  "homepage": "https://github.com/wtyeung/n8n-nodes-puppeteer",
   "author": {
     "name": "laHeud",
     "email": "clement@example.com"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/laHeud/n8n-nodes-puppeteer.git"
+    "url": "git+https://github.com/wtyeung/n8n-nodes-puppeteer.git"
   },
   "main": "index.js",
   "scripts": {
