@@ -25,6 +25,9 @@ import {
 } from 'puppeteer';
 
 import { nodeDescription } from './Puppeteer.node.options';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import { tmpdir } from 'os';
 
 const {
 	NODE_FUNCTION_ALLOW_BUILTIN: builtIn,
@@ -149,6 +152,41 @@ async function handleOptions(
 	await page.setExtraHTTPHeaders(requestHeaders);
 }
 
+async function setupDownloadCapture(page: Page, downloadPath: string): Promise<void> {
+	// Enable download behavior via CDP
+	const client = await page.createCDPSession();
+	await client.send('Page.setDownloadBehavior', {
+		behavior: 'allow',
+		downloadPath: downloadPath,
+	});
+}
+
+async function captureDownloadedFiles(downloadPath: string): Promise<Array<{ fileName: string; data: Buffer }>> {
+	const files: Array<{ fileName: string; data: Buffer }> = [];
+	try {
+		const dirContents = await fs.readdir(downloadPath);
+		for (const fileName of dirContents) {
+			const filePath = path.join(downloadPath, fileName);
+			const stats = await fs.stat(filePath);
+			if (stats.isFile()) {
+				const data = await fs.readFile(filePath);
+				files.push({ fileName, data });
+			}
+		}
+	} catch (error) {
+		// Directory might not exist or be empty - that's ok
+	}
+	return files;
+}
+
+async function cleanupDownloadPath(downloadPath: string): Promise<void> {
+	try {
+		await fs.rm(downloadPath, { recursive: true, force: true });
+	} catch (error) {
+		// Ignore cleanup errors
+	}
+}
+
 async function runCustomScript(
 	this: IExecuteFunctions,
 	itemIndex: number,
@@ -157,6 +195,17 @@ async function runCustomScript(
 	page: Page,
 ): Promise<INodeExecutionData[]> {
 	const scriptCode = this.getNodeParameter('scriptCode', itemIndex) as string;
+	const options = this.getNodeParameter('options', itemIndex, {}) as IDataObject;
+	const captureDownloads = options.captureDownloads === true;
+	
+	// Setup download capture if enabled
+	let downloadPath: string | undefined;
+	if (captureDownloads) {
+		downloadPath = path.join(tmpdir(), `n8n-puppeteer-downloads-${Date.now()}`);
+		await fs.mkdir(downloadPath, { recursive: true });
+		await setupDownloadCapture(page, downloadPath);
+	}
+
 	const context = {
 		$getNodeParameter: this.getNodeParameter,
 		$getWorkflowStaticData: this.getWorkflowStaticData,
@@ -193,6 +242,7 @@ async function runCustomScript(
 		);
 
 		if (!Array.isArray(scriptResult)) {
+			if (downloadPath) await cleanupDownloadPath(downloadPath);
 			return handleError.call(
 				this,
 				new Error(
@@ -204,8 +254,45 @@ async function runCustomScript(
 			);
 		}
 
+		// Capture downloaded files if enabled
+		if (captureDownloads && downloadPath) {
+			const downloadedFiles = await captureDownloadedFiles(downloadPath);
+			
+			// Add downloaded files as binary data to the result
+			if (downloadedFiles.length > 0) {
+				const resultWithBinary = scriptResult.map((item, idx) => {
+					const binaryData: { [key: string]: { data: string; mimeType?: string; fileName?: string } } = {};
+					
+					// Add all downloaded files to the first item, or distribute if multiple items
+					if (idx === 0 || scriptResult.length === downloadedFiles.length) {
+						const fileIndex = scriptResult.length === downloadedFiles.length ? idx : undefined;
+						const filesToAdd = fileIndex !== undefined ? [downloadedFiles[fileIndex]] : downloadedFiles;
+						
+						filesToAdd.forEach((file, fileIdx) => {
+							const binaryKey = downloadedFiles.length === 1 ? 'data' : `data${fileIdx}`;
+							binaryData[binaryKey] = {
+								data: file.data.toString('base64'),
+								fileName: file.fileName,
+							};
+						});
+					}
+					
+					return {
+						...item,
+						binary: Object.keys(binaryData).length > 0 ? binaryData : item.binary,
+					};
+				});
+				
+				await cleanupDownloadPath(downloadPath);
+				return this.helpers.normalizeItems(resultWithBinary);
+			}
+			
+			await cleanupDownloadPath(downloadPath);
+		}
+
 		return this.helpers.normalizeItems(scriptResult);
 	} catch (error) {
+		if (downloadPath) await cleanupDownloadPath(downloadPath);
 		return handleError.call(this, error as Error, itemIndex, undefined, page);
 	}
 }

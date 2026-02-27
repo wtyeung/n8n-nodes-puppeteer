@@ -80,6 +80,10 @@ For detailed development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### Recent Improvements
 
+**v1.5.0**
+- ✅ **Capture Downloads**: Automatically capture files downloaded during custom script execution as binary data
+- ✅ **Auto Cleanup**: Downloaded files are automatically cleaned up after capture
+
 **v1.4.16**
 - ✅ **Installation Fix**: Resolved `yallist_1.Yallist is not a constructor` error when installing via n8n Community Nodes UI
 - ✅ **Installation Fix**: Resolved `ENOENT: no such file or directory, proxy-agent/dist/index.js` error caused by n8n's shallow install strategy
@@ -199,6 +203,7 @@ For additional help, see [Puppeteer's troubleshooting guide](https://pptr.dev/tr
     - **Headless mode**: Allows you to change whether to run browser runs in headless mode or not.
     - **Use Chrome Headless Shell**: Whether to run browser in headless shell mode. Defaults to false. Headless mode must be enabled. chrome-headless-shell must be in $PATH.
     - **Stealth mode**: When enabled, applies various techniques to make detection of headless Puppeteer harder. Powered by [puppeteer-extra-plugin-stealth](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth).
+    - **Capture Downloads**: When enabled, any files downloaded during script execution (via clicks, direct downloads, etc.) will be automatically captured and returned as binary data in the node output. Perfect for downloading PDFs, images, or other files triggered by user interactions. Files are automatically cleaned up after capture. Only applies to 'Run Custom Script' operation.
     - **Launch Arguments**: Allows you to specify additional command line arguments passed to the browser instance.
     - **Proxy Server**: Allows Puppeteer to use a custom proxy configuration. You can specify a custom proxy configuration in three ways:
       By providing a semi-colon-separated mapping of list scheme to url/port pairs.
@@ -351,6 +356,26 @@ return [
   },
 ];
 ```
+
+### Capturing Downloads
+
+Enable the **Capture Downloads** option to automatically capture files downloaded during script execution:
+
+```javascript
+// Navigate to a page with a download link
+await $page.goto("https://example.com/downloads");
+
+// Click the download button - file will be automatically captured
+await $page.click("#download-pdf-button");
+
+// Wait for download to complete
+await $page.waitForTimeout(2000);
+
+// Return your data - downloaded file will be added as binary data automatically
+return [{ json: { status: "Downloaded" } }];
+```
+
+The downloaded file(s) will be automatically added to the output as binary data with the key `data` (or `data0`, `data1`, etc. for multiple files). Files are cleaned up automatically after capture.
 
 ## Screenshots
 

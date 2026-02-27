@@ -13,7 +13,6 @@ This is a fork with improved browserWSEndpoint handling that provides browser au
 - PDF generation
 - Page content extraction
 - Web scraping and automation
-
 ## Technology Stack
 
 ### Core Dependencies

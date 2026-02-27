@@ -748,6 +748,20 @@ export const nodeDescription: INodeTypeDescription = {
 						'Gives page the function .typeHuman() which "humanizes" the writing of input elements',
 				},
 				{
+					displayName: 'Capture Downloads',
+					name: 'captureDownloads',
+					type: 'boolean',
+					required: false,
+					default: false,
+					description:
+						'When enabled, any files downloaded during script execution (via clicks, direct downloads, etc.) will be automatically captured and returned as binary data in the node output. Perfect for downloading PDFs, images, or other files triggered by user interactions. Files are automatically cleaned up after capture. Only applies to \'Run Custom Script\' operation.',
+					displayOptions: {
+						show: {
+							operation: ['runCustomScript'],
+						},
+					},
+				},
+				{
 					displayName: 'Human Typing Options',
 					name: 'humanTypingOptions',
 					type: 'collection',
