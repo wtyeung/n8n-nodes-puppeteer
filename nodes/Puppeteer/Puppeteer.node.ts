@@ -201,7 +201,8 @@ async function runCustomScript(
 	// Setup download capture if enabled
 	let downloadPath: string | undefined;
 	if (captureDownloads) {
-		downloadPath = path.join(tmpdir(), `n8n-puppeteer-downloads-${Date.now()}`);
+		const randomSuffix = Math.random().toString(36).substring(2, 15);
+		downloadPath = path.join(tmpdir(), `n8n-puppeteer-downloads-${Date.now()}-${randomSuffix}`);
 		await fs.mkdir(downloadPath, { recursive: true });
 		await setupDownloadCapture(page, downloadPath);
 	}
