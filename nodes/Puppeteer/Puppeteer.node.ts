@@ -163,12 +163,19 @@ async function setupDownloadCapture(
 		try {
 			const headers = response.headers();
 			const contentDisposition = headers['content-disposition'];
-			const contentType = headers['content-type'];
+			const contentType = headers['content-type'] || '';
+			const url = response.url();
 			
 			// Check if this is a download response
-			const isDownload = contentDisposition && contentDisposition.includes('attachment');
+			// 1. Has Content-Disposition: attachment header
+			// 2. Has common download content types (CSV, Excel, PDF, etc.)
+			const hasAttachmentHeader = contentDisposition && contentDisposition.includes('attachment');
+			const isDownloadableType = /\/(csv|excel|pdf|zip|octet-stream|vnd\.)/.test(contentType);
+			
+			const isDownload = hasAttachmentHeader || isDownloadableType;
 			
 			if (isDownload) {
+				console.log(`Capturing download: ${url} (Content-Type: ${contentType})`);
 				const buffer = await response.buffer();
 				
 				// Extract filename from Content-Disposition header
@@ -180,18 +187,29 @@ async function setupDownloadCapture(
 					}
 				}
 				
+				// If no filename from header, try to extract from URL
+				if (fileName === 'download' && url) {
+					const urlPath = new URL(url).pathname;
+					const urlFileName = urlPath.split('/').pop();
+					if (urlFileName && urlFileName.includes('.')) {
+						fileName = urlFileName;
+					}
+				}
+				
 				// Add extension based on content-type if no extension present
 				if (!fileName.includes('.') && contentType) {
 					const ext = contentType.split('/')[1]?.split(';')[0];
-					if (ext) {
+					if (ext && ext !== 'octet-stream') {
 						fileName = `${fileName}.${ext}`;
 					}
 				}
 				
 				capturedDownloads.push({ fileName, data: buffer });
+				console.log(`Download captured: ${fileName} (${buffer.length} bytes)`);
 			}
 		} catch (error) {
 			// Ignore errors in response interception
+			console.log(`Error capturing download: ${error}`);
 		}
 	});
 }
