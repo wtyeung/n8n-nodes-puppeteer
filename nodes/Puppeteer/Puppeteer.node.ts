@@ -183,7 +183,7 @@ async function setupDownloadCapture(
 				if (contentDisposition) {
 					const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
 					if (fileNameMatch && fileNameMatch[1]) {
-						fileName = fileNameMatch[1].replace(/['"]/g, '');
+						fileName = fileNameMatch[1].replace(/['"]/g, '').trim();
 					}
 				}
 				
@@ -196,9 +196,25 @@ async function setupDownloadCapture(
 					}
 				}
 				
+				// Map content-type to proper file extension
+				const contentTypeToExt: { [key: string]: string } = {
+					'text/csv': 'csv',
+					'application/csv': 'csv',
+					'application/vnd.ms-excel': 'xls',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+					'application/pdf': 'pdf',
+					'application/zip': 'zip',
+					'application/x-zip-compressed': 'zip',
+					'text/plain': 'txt',
+					'application/json': 'json',
+					'application/xml': 'xml',
+					'text/xml': 'xml',
+				};
+				
 				// Add extension based on content-type if no extension present
 				if (!fileName.includes('.') && contentType) {
-					const ext = contentType.split('/')[1]?.split(';')[0];
+					const baseContentType = contentType.split(';')[0].trim();
+					const ext = contentTypeToExt[baseContentType] || contentType.split('/')[1]?.split(';')[0];
 					if (ext && ext !== 'octet-stream') {
 						fileName = `${fileName}.${ext}`;
 					}
