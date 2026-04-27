@@ -80,6 +80,11 @@ For detailed development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### Recent Improvements
 
+**v1.7.0**
+- ✅ **$downloadFile Helper**: New helper function to download files with browser cookies/session, bypassing VM2 wrapping and CORS issues
+- ✅ **Redirect Filtering**: Capture Downloads now skips 3xx redirect responses to avoid capturing empty buffers
+- ✅ **Better Download Control**: Direct file download support for authenticated resources and complex redirect chains
+
 **v1.6.0**
 - ✅ **Remote Browser Support**: Capture Downloads now works with remote browsers (browserless, etc.) via response interception
 - ✅ **Response Interception**: Uses HTTP response interception instead of filesystem, compatible with all browser setups
@@ -277,11 +282,12 @@ Before script execution, you can configure browser behavior using the operation'
 - Set page load timeouts
 - And more
 
-Access Puppeteer-specific objects using:
+Access Puppeteer-specific objects and helpers:
 
 - `$page` - Current page instance
 - `$browser` - Browser instance
 - `$puppeteer` - Puppeteer library
+- `$downloadFile(url, extraHeaders?)` - Download files with browser cookies/session (bypasses CORS and VM2 issues)
 
 Plus all special variables and methods from the Code node are available. For a complete reference, see the [n8n documentation](https://docs.n8n.io/code-examples/methods-variables-reference/). Just like n8n's Code node, anything you `console.log` will be shown in the browser's console during test mode or in stdout when configured.
 
@@ -380,6 +386,45 @@ return [{ json: { status: "Downloaded" } }];
 ```
 
 The downloaded file(s) will be automatically added to the output as binary data with the key `data` (or `data0`, `data1`, etc. for multiple files). The feature intercepts HTTP responses with `Content-Disposition: attachment` headers, making it compatible with both local and remote browser setups.
+
+### Direct File Download with $downloadFile
+
+For more control over downloads, use the `$downloadFile` helper which bypasses VM2 wrapping and CORS restrictions:
+
+```javascript
+// Login to authenticated site
+await $page.goto("https://example.com/login");
+await $page.type("#username", "user");
+await $page.type("#password", "pass");
+await $page.click("#login-button");
+await $page.waitForNavigation();
+
+// Extract download URL from page
+const downloadUrl = await $page.evaluate(() => {
+  return document.querySelector("#report-download-link").href;
+});
+
+// Download file using browser's session/cookies
+const file = await $downloadFile(downloadUrl);
+
+// Return with binary data
+return [{
+  json: { 
+    fileName: file.fileName,
+    size: file.size,
+    mimeType: file.mimeType
+  },
+  binary: {
+    data: {
+      data: file.base64,
+      mimeType: file.mimeType,
+      fileName: file.fileName
+    }
+  }
+}];
+```
+
+This approach works reliably for authenticated downloads, redirects, and cases where the Capture Downloads option may not trigger.
 
 ## Screenshots
 

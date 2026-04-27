@@ -161,10 +161,16 @@ async function setupDownloadCapture(
 	// Intercept responses to capture downloads (works for both local and remote browsers)
 	page.on('response', async (response) => {
 		try {
+			const status = response.status();
 			const headers = response.headers();
 			const contentDisposition = headers['content-disposition'];
 			const contentType = headers['content-type'] || '';
 			const url = response.url();
+			
+			// Skip redirects and preflight responses (no body to capture)
+			if (status >= 300 && status < 400) {
+				return;
+			}
 			
 			// Check if this is a download response
 			// 1. Has Content-Disposition: attachment header
@@ -259,6 +265,37 @@ async function runCustomScript(
 		$browser: browser,
 		$page: page,
 		$puppeteer: puppeteer,
+		$downloadFile: async (url: string, extraHeaders?: Record<string, string>) => {
+			// Download file using Node.js HTTP request with browser cookies/UA
+			// Bypasses VM2 wrapping issues and CORS restrictions
+			const cookies = await page.cookies();
+			const cookieHeader = cookies.map((c: any) => `${c.name}=${c.value}`).join('; ');
+			const userAgent = await page.evaluate('navigator.userAgent') as string;
+
+			const response = await this.helpers.httpRequest({
+				url,
+				method: 'GET',
+				headers: {
+					'Cookie': cookieHeader,
+					'User-Agent': userAgent,
+					...(extraHeaders || {}),
+				},
+				encoding: 'arraybuffer',
+				returnFullResponse: true,
+			});
+
+			const buffer = Buffer.from(response.body as ArrayBuffer);
+			const contentDisposition = (response.headers['content-disposition'] as string) || '';
+			const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+			const fileName = fileNameMatch ? fileNameMatch[1].replace(/['"]/g, '').trim() : 'download';
+
+			return {
+				base64: buffer.toString('base64'),
+				mimeType: (response.headers['content-type'] as string) || 'application/octet-stream',
+				fileName,
+				size: buffer.length,
+			};
+		},
 	};
 	const vm = new NodeVM({
 		console: 'redirect',
