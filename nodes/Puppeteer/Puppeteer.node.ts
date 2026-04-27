@@ -268,18 +268,30 @@ async function runCustomScript(
 		$downloadFile: async (url: string, extraHeaders?: Record<string, string>) => {
 			// Download file using Node.js HTTP request with browser cookies/UA
 			// Bypasses VM2 wrapping issues and CORS restrictions
-			const cookies = await page.cookies();
-			const cookieHeader = cookies.map((c: any) => `${c.name}=${c.value}`).join('; ');
+			const pageOrigin = new URL(page.url()).origin;
+			const downloadOrigin = new URL(url).origin;
+
+			// Only forward cookies to the same origin to prevent session cookie exfiltration
+			let cookieHeader = '';
+			if (downloadOrigin === pageOrigin) {
+				const cookies = await page.cookies();
+				cookieHeader = cookies.map((c: any) => `${c.name}=${c.value}`).join('; ');
+			}
+
 			const userAgent = await page.evaluate('navigator.userAgent') as string;
+
+			const requestHeaders: Record<string, string> = {
+				'User-Agent': userAgent,
+				...(extraHeaders || {}),
+			};
+			if (cookieHeader) {
+				requestHeaders['Cookie'] = cookieHeader;
+			}
 
 			const response = await this.helpers.httpRequest({
 				url,
 				method: 'GET',
-				headers: {
-					'Cookie': cookieHeader,
-					'User-Agent': userAgent,
-					...(extraHeaders || {}),
-				},
+				headers: requestHeaders,
 				encoding: 'arraybuffer',
 				returnFullResponse: true,
 			});
